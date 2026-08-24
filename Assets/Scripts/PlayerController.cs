@@ -44,7 +44,7 @@ public class PlayerController : MonoBehaviour
     }
     public void CancelJump (float releaseButtonTime)
     {
-        //character.ClearUpwardGravity();
+        character.CutJump();
     }
     public void Attack ()
     {

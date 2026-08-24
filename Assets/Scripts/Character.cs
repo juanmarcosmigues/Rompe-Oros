@@ -48,12 +48,15 @@ public class Character : MonoBehaviour
 
     // Solicited
     float _solicitedJumpForce = default;
+    bool _solicitedCutJump = false;
     Vector3 _solicitedlocomotion = default;
     Vector3 _solicitedImpulse = default;
 
     // Engine
     Vector3 _locomotionVelocity = default;
     Vector3 _forceVelocity = default;
+    Vector3 _jumpVelocity = default;
+    Vector3 _fallVelocity = default;
     Vector3 _movingSurfaceVelocity = default;
     Vector3[] _customVelocity = new Vector3[VELOCITY_LAYERS];
 
@@ -61,6 +64,7 @@ public class Character : MonoBehaviour
     Vector3 _vVelocity;
     Vector3 _hVelocity;
     Vector3 _velocity;
+    Vector3 _lastVelocity;
 
     bool _lastGrounded = false;
     bool _isGrounded = false;
@@ -102,6 +106,10 @@ public class Character : MonoBehaviour
     {
         _solicitedJumpForce += force;
     }
+    public void CutJump ()
+    {
+        _solicitedCutJump = true;
+    }
     public void Impulse (Vector3 velocity)
     {
         _solicitedImpulse += velocity;
@@ -119,6 +127,7 @@ public class Character : MonoBehaviour
         // Step 1: clear grounding state and other stale refs.
         _lastGrounded = _isGrounded;
         _isGrounded = false;
+        _lastVelocity = _velocity;
 
         // Step 2: Fix any overlaps that might have happen during the last physics frame.
         pos = SeparateFromCharacters(pos);
@@ -189,21 +198,54 @@ public class Character : MonoBehaviour
 
         _velocity += _forceVelocity;
 
+        float externalY = 0f;
         for (int i = 0; i < _customVelocity.Length; i++)
         {
-            _velocity += _customVelocity[i];
+            _velocity.x += _customVelocity[i].x;
+            _velocity.z += _customVelocity[i].z;
+            externalY += _customVelocity[i].y;
         }
 
-        if (_lastGrounded && _velocity.y <= 0f)
-            _velocity.y = groundStick;
-        else
-            _velocity.y += _velocity.y > 0 ? 
-                riseGravity * Time.fixedDeltaTime : fallGravity * Time.fixedDeltaTime;
+        if (_solicitedJumpForce > 0f)
+        {
+            _jumpVelocity.y = _solicitedJumpForce;
+            _fallVelocity.y = 0f;
+        }
+        if (_solicitedCutJump)
+        {
+            _jumpVelocity.y = 0f;
+        }
 
-        if (_solicitedJumpForce > 0)
-            _velocity.y = _solicitedJumpForce;
+        if (_lastGrounded && _jumpVelocity.y <= 0f && _fallVelocity.y <= 0f)
+        {
+            _fallVelocity.y = groundStick;
+        }
+        else
+        {
+            float g = (_jumpVelocity.y + _fallVelocity.y) > 0f ? riseGravity : fallGravity;
+
+            if (_jumpVelocity.y > 0f)
+            {
+                _jumpVelocity.y += g * Time.fixedDeltaTime;
+                if (_jumpVelocity.y < 0f)                  
+                {
+                    // jump spent pass remainder into fall
+                    _fallVelocity.y += _jumpVelocity.y;
+                    _jumpVelocity.y = 0f;
+                }
+            }
+            else
+            {
+                _fallVelocity.y += g * Time.fixedDeltaTime;
+            }
+
+            _fallVelocity.y = Mathf.Max(_fallVelocity.y, maxGravity);
+
+            _velocity.y = _jumpVelocity.y + _fallVelocity.y + externalY;
+        }
 
         _solicitedJumpForce = 0;
+        _solicitedCutJump = false;
         _solicitedImpulse = Vector3.zero;
         _solicitedlocomotion = Vector3.zero;
     }
