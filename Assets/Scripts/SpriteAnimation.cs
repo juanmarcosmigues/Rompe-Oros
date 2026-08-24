@@ -9,6 +9,7 @@ public class SpriteAnimation : ScriptableObject
         public Sprite sprite;
         public Vector3 localPosition;
         public int hold;
+        public string message;
     }
     public enum PlayMode { Single, Loop, Clamp }
 

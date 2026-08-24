@@ -16,7 +16,13 @@ MonoBehaviour:
   - sprite: {fileID: 21300000, guid: 0e2f7ee3258593341abb3655ec473505, type: 3}
     localPosition: {x: 0.21, y: 0.79, z: 0}
     hold: 0
+    message: 
   - sprite: {fileID: 21300000, guid: 58d7e4ac38ac58d49a423aebfda6f56b, type: 3}
     localPosition: {x: -0.58, y: 0.65, z: 0}
     hold: 0
+    message: Attack01Hitbox_ON
+  - sprite: {fileID: 21300000, guid: 58d7e4ac38ac58d49a423aebfda6f56b, type: 3}
+    localPosition: {x: -0.58, y: 0.65, z: 0}
+    hold: 0
+    message: Attack01Hitbox_OFF
   playMode: 0

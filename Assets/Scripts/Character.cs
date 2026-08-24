@@ -110,9 +110,10 @@ public class Character : MonoBehaviour
     {
         _solicitedCutJump = true;
     }
-    public void Impulse (Vector3 velocity)
+    public void Impulse (Vector3 v)
     {
-        _solicitedImpulse += velocity;
+        _solicitedImpulse += new Vector3(v.x, 0f, v.z);
+        _fallVelocity.y += v.y;
     }
     public void CustomVelocity (Vector3 velocity, int layer)
     {
@@ -194,6 +195,7 @@ public class Character : MonoBehaviour
         _velocity += _locomotionVelocity;
 
         _forceVelocity += _solicitedImpulse;
+        _forceVelocity.y = 0f;
         _forceVelocity = Vector3.MoveTowards(_forceVelocity, Vector3.zero, drag * Time.fixedDeltaTime);
 
         _velocity += _forceVelocity;
@@ -241,7 +243,7 @@ public class Character : MonoBehaviour
 
             _fallVelocity.y = Mathf.Max(_fallVelocity.y, maxGravity);
 
-            _velocity.y = _jumpVelocity.y + _fallVelocity.y + externalY;
+            _velocity.y = _jumpVelocity.y + _fallVelocity.y + _forceVelocity.y + externalY;
         }
 
         _solicitedJumpForce = 0;

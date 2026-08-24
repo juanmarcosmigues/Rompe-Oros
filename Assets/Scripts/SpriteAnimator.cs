@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class SpriteAnimator : MonoBehaviour
 {
@@ -8,8 +10,10 @@ public class SpriteAnimator : MonoBehaviour
     [SerializeField] SpriteRenderer target;
     [SerializeField] int framerate = 12;
     [SerializeField] SpriteAnimation[] animations;
+    [SerializeField] KeyItemPair<UnityEvent>[] events;
 
     Dictionary<string, SpriteAnimation> dictionaryAnimations;
+    Dictionary<string, UnityEvent> dictionaryEvents;
 
     [System.Serializable]
     class PlayState
@@ -62,6 +66,11 @@ public class SpriteAnimator : MonoBehaviour
             animation.SetUpClip();
             dictionaryAnimations.Add(animation.name, animation);
         }
+        dictionaryEvents = new Dictionary<string, UnityEvent>();
+        foreach (var e in events)
+        {
+            dictionaryEvents.Add(e.key, e.item);
+        }
     }
     public void Play(string name, int layer = 0)
     {
@@ -98,6 +107,12 @@ public class SpriteAnimator : MonoBehaviour
 
             target.sprite = frame.sprite;
             target.transform.localPosition = frame.localPosition;
+
+            if (frame.message != default)
+            {
+                if (dictionaryEvents.ContainsKey(frame.message))
+                    dictionaryEvents[frame.message]?.Invoke();
+            }
         }    
     }
 }
